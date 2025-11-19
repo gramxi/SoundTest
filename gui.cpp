@@ -5,6 +5,7 @@ NodeView::NodeView(const char* title, AudioEngine *engine)
 {
     this->audioEngine = engine;
     this->title = title;
+    this->nodePrompt = "";
     
 }
 
@@ -364,7 +365,13 @@ void NodeView::DrawNodeGraph() {
     if(IsKeyPressed(KEY_SPACE)) 
     {
         showCreateWindow = !showCreateWindow;
-        if(showCreateWindow) ImGui::SetNextWindowPos(ImGui::GetMousePos());
+        if(showCreateWindow) {
+            ImGui::SetNextWindowPos(ImGui::GetMousePos()); 
+
+            nodePrompt.clear();
+
+        }
+
     }
 
     if(showCreateWindow) {
@@ -386,12 +393,12 @@ void NodeView::DrawCreatorWindow() {
     if (!ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0))
         ImGui::SetKeyboardFocusHere(0);
 
-    ImGui::InputText("Input Node Name", nodePrompt, IM_ARRAYSIZE(nodePrompt));
+    ImGui::InputText("Input Node Name", (char*)nodePrompt.c_str(),nodePrompt.capacity() + 1);
 
 
     for (size_t c = 0; c < audioEngine->GetNodeCreators()->size(); c++)
     {
-        if(TextFindIndex(TextToLower(audioEngine->GetNodeCreators()->at(c).GetName()), nodePrompt) != -1) {
+        if(TextFindIndex(TextToLower(audioEngine->GetNodeCreators()->at(c).GetName()),(char*) nodePrompt.c_str()) != -1) {
             if(ImGui::Button(audioEngine->GetNodeCreators()->at(c).GetName()))
             {
                 printf("Creating node...");
@@ -468,7 +475,6 @@ void NodeView::DrawNodeInspector()
 
 void NodeView::Dispose()
 {
-
     ed::DestroyEditor(context);
 
     context = nullptr;

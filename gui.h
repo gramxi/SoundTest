@@ -5,9 +5,12 @@
 #include "raylib.h"
 #include "imgui-node-editor/imgui_node_editor.h"
 #include "rlImGui.h"
+#include "imgui.h"
+#include <string>
 
 namespace ed = ax::NodeEditor;
 using namespace ax::NodeEditor;
+using namespace std;
 
 #ifndef WINDOW_WIDTH
     #define WINDOW_WIDTH (1920)
@@ -29,7 +32,7 @@ private:
     ax::NodeEditor::EditorContext* context;
     const char* title;
     bool showCreateWindow = false;
-    char nodePrompt[128] = "";
+    std::string nodePrompt;
     
 public:
     NodeView(const char* title, AudioEngine* engine);
