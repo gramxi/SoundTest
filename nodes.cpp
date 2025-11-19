@@ -43,7 +43,7 @@ void Node::CallInputs()
     graph->ExecuteNodes(&inputNodeIDs);
 }
 
-void Node::SetID(int id)
+void Node::SetID(NodeID id)
 {
     this->id = id;
 }
@@ -62,11 +62,11 @@ void Node::SaveDefaults(json& j)
 
     json inputs = json::array();
 
-    vector<int> * inputVector = this->GetInputs();
+    vector<NodeID>* inputVector = this->GetInputs();
 
     for (size_t i = 0; i < inputVector->size(); i++)
     {
-        int input = inputVector->at(i);
+        NodeID input = inputVector->at(i);
 
         inputs.push_back(input);
 
@@ -177,7 +177,7 @@ float NodeGraph::Execute()
 
 }
 
-void NodeGraph::ExecuteNodes(vector<int> *nodes)
+void NodeGraph::ExecuteNodes(vector<NodeID> *nodes)
 {
     for (size_t i = 0; i < nodes->size(); i++)
     {
@@ -197,7 +197,7 @@ void NodeGraph::ExecuteNodes(vector<int> *nodes)
 
 }
 
-void NodeGraph::ExecuteNode(int nodeId) {
+void NodeGraph::ExecuteNode(NodeID nodeId) {
 
     
     NodePtr node = at(nodeId);
@@ -221,7 +221,7 @@ float NodeGraph::GetTime()
     return currentTime;
 }
 
-NodePtr NodeGraph::at(int nodeID)
+NodePtr NodeGraph::at(NodeID nodeID)
 {
     for (size_t i = 0; i < nodes.size(); i++)
     {
@@ -239,9 +239,9 @@ NodePtr NodeGraph::atIndex(uint32_t index)
     return nodes[index];
 }
 
-int NodeGraph::GetNextFreeID()
+NodeID NodeGraph::GetNextFreeID()
 {
-    int i = 0;
+    NodeID i = 0;
 
     while (i < MAX_NODE_COUNT)
     {
@@ -263,7 +263,7 @@ int NodeGraph::GetNextFreeID()
     return 0;
 }
 
-void NodeGraph::RemoveNode(int nodeId)
+void NodeGraph::RemoveNode(NodeID nodeId)
 {
     for (auto n = nodes.begin(); n < nodes.end(); n++)
     {
@@ -348,7 +348,7 @@ void NodeGraph::Dispose()
     printf("Node graph disposed.\n");
 }
 
-void NodeGraph::SetRoot(int node) {
+void NodeGraph::SetRoot(NodeID node) {
     rootNode = node;
 }
 
@@ -407,8 +407,8 @@ void ValueNode::ApplyData(json j)
 ResampleNode::ResampleNode(NodeGraph *graph) : Node(graph)
 {
     name = "Resample Node";
-    from = NodeDataValues::CURRENT_VALUE;
-    to = NodeDataValues::CURRENT_VALUE;
+    from = NodeDataValue::CURRENT_VALUE;
+    to = NodeDataValue::CURRENT_VALUE;
 }
 
 ResampleNode::~ResampleNode()
@@ -489,7 +489,7 @@ void SinNode::ApplyData(json j) {
 
 NoiseNode::NoiseNode(NodeGraph* graph) : Node(graph) { 
     name = "Noise Node"; 
-    target = NodeDataValues::CURRENT_VALUE; 
+    target = NodeDataValue::CURRENT_VALUE; 
     noise = daisysp::WhiteNoise(); 
     noise.Init();
     noise.SetSeed(42);
@@ -526,7 +526,7 @@ void NoiseNode::ApplyData(json j) {
 SawNode::SawNode(NodeGraph *graph) : Node(graph)
 {
     name = "Saw Node";
-    target = NodeDataValues::CURRENT_VALUE;
+    target = NodeDataValue::CURRENT_VALUE;
     lastFreq = 0.0f;
     freqOffset = 0.0f;
 }
@@ -579,7 +579,7 @@ void SawNode::ApplyData(json j)
 MultiplyNode::MultiplyNode(NodeGraph *graph) : Node(graph)
 {
     name = "Multiply Node";
-    target = NodeDataValues::CURRENT_VALUE;
+    target = NodeDataValue::CURRENT_VALUE;
     value = 1.0;
 }
 
@@ -592,7 +592,7 @@ void MultiplyNode::Execute(map<uint32_t, float> *data)
 
     float res = value;
 
-    vector<int>* inputs = GetInputs();
+    vector<NodeID>* inputs = GetInputs();
 
     for (size_t i = 0; i < inputs->size(); i++)
     {
@@ -635,8 +635,8 @@ void MultiplyNode::ApplyData(json j)
 AddNode::AddNode(NodeGraph *graph) : Node(graph)
 {
     name = "Add Node";
-    target = NodeDataValues::CURRENT_VALUE;
-    input = NodeDataValues::CURRENT_VALUE;
+    target = NodeDataValue::CURRENT_VALUE;
+    input = NodeDataValue::CURRENT_VALUE;
     value = 0;
 }
 
@@ -648,7 +648,7 @@ void AddNode::Execute(map<uint32_t, float> *data)
 {
     float res = value;
 
-    vector<int>* inputs = GetInputs();
+    vector<NodeID>* inputs = GetInputs();
 
     for (size_t i = 0; i < inputs->size(); i++)
     {
@@ -692,7 +692,7 @@ DrumNode::DrumNode(NodeGraph *graph) : Node(graph)
 {
     name = "Drum Node";
     drum = daisysp::AnalogBassDrum();
-    target = NodeDataValues::CURRENT_VALUE;
+    target = NodeDataValue::CURRENT_VALUE;
     time = 0.0f;
 
     drum.Init(44100.0f);

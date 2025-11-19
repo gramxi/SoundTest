@@ -13,14 +13,13 @@ using namespace std;
 
 using json = nlohmann::json;
 
-
 #ifndef PI
     #define PI 3.14159265358979323846f
 #endif
 
 #define MAX_NODE_COUNT (1024)
 
-typedef enum NodeDataValues {
+typedef enum NodeDataValue {
     CURRENT_VALUE = 0,
     TIME = 1,
     FREQUENCY = 2,
@@ -30,7 +29,9 @@ typedef enum NodeDataValues {
     MATH_3 = 6,
     PHASE = 7,
 
-} NodeDataValues;
+} NodeDataValue;
+
+typedef uint32_t NodeID;
 
 class NodeGraph;
 class Node;
@@ -42,12 +43,12 @@ typedef shared_ptr<Node> NodePtr;
 class Node
 {
 private:
-    vector<int> inputNodeIDs;
+    vector<NodeID> inputNodeIDs;
     NodeGraph* graph;
 protected:
     const char* name;
 public:
-    int id = 0;
+    NodeID id = 0;
     int posX, posY;
     Node(NodeGraph* graph);
     ~Node();
@@ -58,13 +59,13 @@ public:
     void AddInputPort(int uniquePortID);
     void RemoveInputPort(int portID);
     void CallInputs();
-    void SetID(int id);
+    void SetID(NodeID id);
     const char* GetName() { return name; }
-    vector<int>* GetInputs() {return &inputNodeIDs;}
+    vector<NodeID>* GetInputs() {return &inputNodeIDs;}
     NodeGraph* GetGraph() { return graph; }
     void SaveDefaults(json& json);
     void LoadDefaults(json json);
-    static float TryGetValue(uint32_t value,map<uint32_t, float>* data);
+    static float TryGetValue(uint32_t value, map<uint32_t, float>* data);
 
     //Gui functions
     virtual void Draw() {};
@@ -81,24 +82,24 @@ private:
     //Helper map for storing node names for each data value that can be changed (useful for dropdowns, etc.)
     map<uint32_t, const char*> nodeDataNames;
     //Node id of the node to start evoking the tree
-    int rootNode;
+    NodeID rootNode;
     float currentTime = 0;
 public:
     NodeGraph();
     ~NodeGraph();
     void AddNode(NodePtr node);
-    void SetRoot(int nodeID);
+    void SetRoot(NodeID id);
     int GetRoot();
     float Execute();
-    void ExecuteNodes(vector<int>* nodes);
-    void ExecuteNode(int nodeId);
+    void ExecuteNodes(vector<NodeID>* nodes);
+    void ExecuteNode(NodeID nodeId);
     void Step();
     float GetTime();
     size_t NodeCount() { return nodes.size(); }
-    NodePtr at(int nodeID);
+    NodePtr at(NodeID nodeID);
     NodePtr atIndex(uint32_t index);
-    int GetNextFreeID();
-    void RemoveNode(int nodeId);
+    NodeID GetNextFreeID();
+    void RemoveNode(NodeID nodeId);
     int NodeDataToNameIndex(uint32_t nodeDataValue);
     vector<const char*> GetNodeNames();
     uint32_t NodeNameToIndex(const char* nodeDataName);
@@ -152,7 +153,7 @@ private:
     
 public:
     //Takes TIME and FREQUENCY as input and writes into CURRENT_VALUE
-    SinNode(NodeGraph* graph) : Node(graph) { name = "Sin Node"; target = NodeDataValues::CURRENT_VALUE; lastFreq = 0.0f; freqOffset = 0.0f;};
+    SinNode(NodeGraph* graph) : Node(graph) { name = "Sin Node"; target = NodeDataValue::CURRENT_VALUE; lastFreq = 0.0f; freqOffset = 0.0f;};
     ~SinNode();
     void Execute(map<uint32_t, float>* data) override;
     void Draw() override;
