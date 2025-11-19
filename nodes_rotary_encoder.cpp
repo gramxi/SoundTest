@@ -8,7 +8,7 @@ json RotaryNode::Serialize()
 
     j["target"] = target;
     j["value"] = value;
-    j["usePhase"] = usePhase;
+    //j["usePhase"] = usePhase;
 
     SaveDefaults(std::ref(j));
     
@@ -21,10 +21,10 @@ void RotaryNode::ApplyData(json j)
     LoadDefaults(j);
     if(j.contains("target")) target = j["target"];
     if(j.contains("value")) {
-        currentValue = j["value"];
+        //currentValue = j["value"];
         value = j["value"];
     }
-    if(j.contains("usePhase")) usePhase = j["usePhase"];
+    //if(j.contains("usePhase")) usePhase = j["usePhase"];
 
 
     // std::cout << "Finished deserializing. Data: " << currentValue << std::endl;
@@ -153,9 +153,9 @@ RotaryNode::RotaryNode(NodeGraph *graph) : Node(graph)
 
     name = "Rotary Node";
     value = 0.0f;
-    currentValue = 0.0f;
-    phase = 0.0f;
-    usePhase = true;
+    //currentValue = 0.0f;
+    //phase = 0.0f;
+    //usePhase = true;
 
 
     //initialize rotary listener
@@ -189,30 +189,30 @@ void RotaryNode::Execute(map<uint32_t, float> *data)
     if(decoder != nullptr) value = decoder->get_value();
 
 
-    bool shouldTrigger = false; 
+    // bool shouldTrigger = false; 
     
-    float delta = 0;
+    // float delta = 0;
 
-    if(currentValue != value) {
-        shouldTrigger = true;
+    // if(currentValue != value) {
+    //     shouldTrigger = true;
 
-        delta = value - currentValue;
+    //     delta = value - currentValue;
 
-        currentValue = value;
+    //     currentValue = value;
 
-    }
+    // }
 
     (*data)[target] = value;
 
-    float time = fmodf(TryGetValue(TIME, data), 44100.0f);
+    //float time = fmodf(TryGetValue(TIME, data), 44100.0f);
 
 
-    if(shouldTrigger) {
-        phase += time * delta;
-    }
+    // if(shouldTrigger) {
+    //     phase += time * delta;
+    // }
 
 
-    if(usePhase) (*data)[PHASE] = phase;
+    // if(usePhase) (*data)[PHASE] = phase;
 }
 
 void RotaryNode::Dispose()
@@ -236,9 +236,9 @@ RotaryNode::RotaryNode(NodeGraph *graph) : Node(graph)
 {
     name = "Rotary Node";
     value = 0.0f;
-    currentValue = 0.0f;
-    phase = 0.0f;
-    usePhase = true;
+    //currentValue = 0.0f;
+    //phase = 0.0f;
+    //usePhase = true;
 
 }
 
@@ -249,29 +249,29 @@ RotaryNode::~RotaryNode()
 void RotaryNode::Execute(map<uint32_t, float> *data)
 {
 
-    bool shouldTrigger = false; 
+    //bool shouldTrigger = false; 
     
-    float delta = 0;
+    //float delta = 0;
 
-    if(currentValue != value) {
-        shouldTrigger = true;
+    // if(currentValue != value) {
+    //     shouldTrigger = true;
 
-        delta = value - currentValue;
+    //     delta = value - currentValue;
 
-        currentValue = value;
+    //     currentValue = value;
 
-    }
+    // }
 
     (*data)[target] = value;
 
-    float time = fmodf(TryGetValue(TIME, data), 44100.0f);
+    //float time = fmodf(TryGetValue(TIME, data), 44100.0f);
 
 
-    if(shouldTrigger) {
-        phase += time * delta;
-    }
+    // if(shouldTrigger) {
+    //     phase += time * delta;
+    // }
 
-    if(usePhase) (*data)[PHASE] = phase;
+    //if(usePhase) (*data)[PHASE] = phase;
 }
 
 void RotaryNode::ChangeValue(float delta)

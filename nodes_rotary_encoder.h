@@ -61,9 +61,9 @@ class RotaryNode : public Node
 private:
     uint32_t target;
     float value;
-    float currentValue;
-    float phase;
-    bool usePhase;
+    //float currentValue;
+    //float phase;
+    //bool usePhase;
 
     #ifdef RASPI
     re_decoder* decoder;

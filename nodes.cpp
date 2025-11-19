@@ -445,25 +445,27 @@ void ResampleNode::ApplyData(json j)
 
 SinNode::~SinNode()
 {
-    o = daisysp::Oscillator();
-
-    o.Init(44100.0f);
-
-    o.SetAmp(1.0f);
-    
-    o.SetFreq(440.0f);
 }
 
 void SinNode::Execute(map<uint32_t, float> *data)
 {
-
     CallInputs();
 
     float freq = TryGetValue(FREQUENCY, data);
+    
+    freq = fabs(freq);
 
-    float time = fmodf(TryGetValue(TIME, data), 44100.0f / freq);
+    float time = fmodf(TryGetValue(TIME, data), 44100.0f * freq);
 
-    (*data)[target] = sinf((time * freq - TryGetValue(PHASE, data)) * PI * 2.0f / 44100.0f);
+    if(freq != lastFreq) { // frequency shift... 
+        freqOffset += lastFreq * time * PI * 2.0f / 44100.0f - freq * time * PI * 2.0f / 44100.0f;
+    
+        freqOffset = fmodf(freqOffset, 2.0f * PI);
+
+        lastFreq = freq;
+    }
+
+    (*data)[target] = sinf(time * PI * 2.0f / 44100.0f * freq + freqOffset);
 }
 
 json SinNode::Serialize() {
@@ -525,6 +527,8 @@ SawNode::SawNode(NodeGraph *graph) : Node(graph)
 {
     name = "Saw Node";
     target = NodeDataValues::CURRENT_VALUE;
+    lastFreq = 0.0f;
+    freqOffset = 0.0f;
 }
 
 SawNode::~SawNode()
@@ -537,18 +541,17 @@ void SawNode::Execute(map<uint32_t, float> *data)
 
     float freq = TryGetValue(FREQUENCY, data);
 
-    float time = fmodf(TryGetValue(TIME, data), 44100.0f / freq);
+    freq = fabs(freq);
 
+    float time = fmodf(TryGetValue(TIME, data), 44100.0f * freq);
 
+    if(freq != lastFreq) {
+        freqOffset += lastFreq * time - freq * time;
+        lastFreq = freq;
+    }
 
-    //float v = TryGetValue(FREQUENCY, data) * TryGetValue(TIME, data) * (1.0f / 44100.0f)  +  (1.0f / 44100.0f) * TryGetValue(PHASE, data);
-
-
-    float phase = TryGetValue(PHASE, data);
-
-
-    (*data)[target] = ((time * freq - phase) / 44100.0f - floorf((time * freq - phase) / 44100.0f)) * 2.0f - 1.0f; // (float)(((double)TryGetValue(FREQUENCY, data) * (double)TryGetValue(TIME, data) * 44100.0 - 
-       // (double)floor((double)TryGetValue(FREQUENCY, data) * (double)TryGetValue(TIME, data) * 44100.0)) * 2.0 - 1.0 );
+    (*data)[target] = ((time * freq + freqOffset) / 44100.0f - floorf((time * freq + freqOffset) / 44100.0f)) * 2.0f - 1.0f; 
+       
 }
 
 json SawNode::Serialize()
@@ -565,7 +568,7 @@ void SawNode::ApplyData(json j)
 {
     LoadDefaults(j);
     
-    if(j.contains("value")) target = j["target"];
+    if(j.contains("target")) target = j["target"];
 }
 
 

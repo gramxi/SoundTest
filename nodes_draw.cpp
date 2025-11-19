@@ -81,19 +81,19 @@ void RotaryNode::Draw() {
     ImGui::Text("App is compiled for Raspberry Pi. Please connect the GPIOs of your pi to the rotary encoder device and restart the application!");
 #else
     //ImGui::InputFloat("Value", &value, 0.1f);
-    //ImGui::InputFloat("Current value", &currentValue, 0.000000000000000001f);
-    ImGui::Text("Current value: %f", currentValue);
-    ImGui::Text("Value: %f", value);
-    ImGui::Text("Phase: %f", phase);
+    //ImGui::InputFloat("Current value", &value, 0.000000000000000001f);
+    //ImGui::Text("Current value: %f", currentValue);
+    //ImGui::Text("Value: %f", value);
+    //ImGui::Text("Phase: %f", phase);
     //ImGui::Text("Offset: %f", offsetMult);
-    ImGui::Checkbox("Use Phase", &usePhase);
+    //ImGui::Checkbox("Use Phase", &usePhase);
 
 
-    if(ImGui::Button("+")) ChangeValue(10.0f);
-    if(ImGui::Button("-")) ChangeValue(-10.0f);
+    //if(ImGui::Button("+")) ChangeValue(10.0f);
+    //if(ImGui::Button("-")) ChangeValue(-10.0f);
 
 
-    ImGui::DragFloat("Val", &value );
+    ImGui::DragFloat("Value", &value, 0.5f);
 
 #endif
 

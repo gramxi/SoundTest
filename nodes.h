@@ -147,11 +147,12 @@ class SinNode : public Node
 
 private:
     uint32_t target;
-    daisysp::Oscillator o;
+    float lastFreq;
+    float freqOffset;
     
 public:
     //Takes TIME and FREQUENCY as input and writes into CURRENT_VALUE
-    SinNode(NodeGraph* graph) : Node(graph) { name = "Sin Node"; target = NodeDataValues::CURRENT_VALUE; };
+    SinNode(NodeGraph* graph) : Node(graph) { name = "Sin Node"; target = NodeDataValues::CURRENT_VALUE; lastFreq = 0.0f; freqOffset = 0.0f;};
     ~SinNode();
     void Execute(map<uint32_t, float>* data) override;
     void Draw() override;
@@ -163,6 +164,8 @@ class SawNode : public Node
 {
 private:
     uint32_t target;
+    float lastFreq;
+    float freqOffset;
 public:
     SawNode(NodeGraph* graph);
     ~SawNode();
