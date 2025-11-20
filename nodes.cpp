@@ -101,7 +101,7 @@ void Node::LoadDefaults(json j)
     }
 }
 
-float Node::TryGetValue(uint32_t value, map<uint32_t, float> *data)
+float Node::TryGetValue(FrameDataIndex value, FrameData* data)
 {
     auto search = data->find(value);
 
@@ -115,19 +115,19 @@ float Node::TryGetValue(uint32_t value, map<uint32_t, float> *data)
 
 NodeGraph::NodeGraph()
 {
-    nodesData[CURRENT_VALUE] = 0;
-    nodesData[TIME] = 0;
+    frameData[CURRENT_VALUE] = 0;
+    frameData[TIME] = 0;
 
-    rootNode = -1;
+    rootNode = 0;
 
-    nodeDataNames[CURRENT_VALUE] = "Current Value";
-    nodeDataNames[TIME] = "Time";
-    nodeDataNames[FREQUENCY] = "Frequency";
-    nodeDataNames[MATH_0] = "Math 0";
-    nodeDataNames[MATH_1] = "Math 1";
-    nodeDataNames[MATH_2] = "Math 2";
-    nodeDataNames[MATH_3] = "Math 3";
-    nodeDataNames[PHASE] = "Phase";
+    frameDataIndexNames[CURRENT_VALUE] = "Current Value";
+    frameDataIndexNames[TIME] = "Time";
+    frameDataIndexNames[FREQUENCY] = "Frequency";
+    frameDataIndexNames[MATH_0] = "Math 0";
+    frameDataIndexNames[MATH_1] = "Math 1";
+    frameDataIndexNames[MATH_2] = "Math 2";
+    frameDataIndexNames[MATH_3] = "Math 3";
+    frameDataIndexNames[PHASE] = "Phase";
 
 }
 
@@ -148,12 +148,12 @@ void NodeGraph::AddNode(NodePtr node) {
 
 float NodeGraph::Execute()
 {
-    if(rootNode == -1) return 0.0f;
+    //if(rootNode == -1) return 0.0f;
     
-    nodesData.clear();
+    frameData.clear();
 
 
-    nodesData[TIME] = currentTime;
+    frameData[TIME] = currentTime;
 
 
     for (int i = 0; i < nodes.size(); i++)
@@ -166,9 +166,9 @@ float NodeGraph::Execute()
             
             //printf("Node Pointer: %d \n", n);
             
-            n->Execute(&nodesData);
+            n->Execute(&frameData);
             
-            return nodesData.at(CURRENT_VALUE);
+            return frameData.at(CURRENT_VALUE);
             
         }
     }
@@ -189,7 +189,7 @@ void NodeGraph::ExecuteNodes(vector<NodeID> *nodes)
             continue;
         }
 
-        node->Execute(&nodesData);
+        node->Execute(&frameData);
 
 
         //this->nodes.at((*i).first)->Execute(&nodesData);
@@ -207,7 +207,7 @@ void NodeGraph::ExecuteNode(NodeID nodeId) {
         return;
     }
 
-    node->Execute(&nodesData);
+    node->Execute(&frameData);
 }
 
 void NodeGraph::Step() {
@@ -284,26 +284,26 @@ void NodeGraph::RemoveNode(NodeID nodeId)
     
 }
 
-int NodeGraph::NodeDataToNameIndex(uint32_t nodeDataValue)
-{
-    int index = 0;
+// int NodeGraph::NodeDataToNameIndex(uint32_t nodeDataValue)
+// {
+//     int index = 0;
 
-    for (auto i = nodeDataNames.begin(); i != nodeDataNames.end(); i++)
-    {
-        if((*i).first == nodeDataValue) return index;
+//     for (auto i = frameDataIndexNames.begin(); i != frameDataIndexNames.end(); i++)
+//     {
+//         if((*i).first == nodeDataValue) return index;
 
-        index++;
-    }
+//         index++;
+//     }
 
-    return 0;
+//     return 0;
     
-}
+// }
 
-vector<const char*> NodeGraph::GetNodeNames()
+vector<string> NodeGraph::GetNodeNames()
 {
-    vector<const char*> names;
+    vector<string> names;
 
-    for (auto i = nodeDataNames.begin(); i != nodeDataNames.end(); i++)
+    for (auto i = frameDataIndexNames.begin(); i != frameDataIndexNames.end(); i++)
     {
         names.push_back(i->second);
     }
@@ -312,24 +312,37 @@ vector<const char*> NodeGraph::GetNodeNames()
     
 }
 
-uint32_t NodeGraph::NodeNameToIndex(const char *nodeDataName)
+vector<FrameDataIndex> NodeGraph::GetFrameDataIndexValues()
 {
-    for (auto i = nodeDataNames.begin(); i != nodeDataNames.end(); i++)
+    vector<FrameDataIndex> values;
+
+    for (auto i = frameDataIndexNames.begin(); i != frameDataIndexNames.end(); i++)
     {
-        if(strcmp(i->second, nodeDataName) == 0) 
-        {
-            return i->first;
-        }
+        values.push_back(i->first);
     }
 
-    return -1;   
+    return values;
 
 }
 
-float NodeGraph::ReadData(uint32_t nodeDataValue)
+// uint32_t NodeGraph::NodeNameToIndex(const char *nodeDataName)
+// {
+//     for (auto i = frameDataIndexNames.begin(); i != frameDataIndexNames.end(); i++)
+//     {
+//         if(strcmp(i->second, nodeDataName) == 0) 
+//         {
+//             return i->first;
+//         }
+//     }
+
+//     return -1;   
+
+// }
+
+float NodeGraph::ReadData(FrameDataIndex index)
 {
-    if(nodesData.find(nodeDataValue) != nodesData.end()) {
-        return nodesData[nodeDataValue];
+    if(frameData.find(index) != frameData.end()) {
+        return frameData[index];
     }
 
     return 0.0;
@@ -364,11 +377,11 @@ ValueNode::~ValueNode()
 {
 }
 
-void ValueNode::Execute(map<uint32_t, float>* data) {
+void ValueNode::Execute(FrameData* data) {
 
     CallInputs();
 
-    (*data)[target] = value;
+    data->insert_or_assign(target, value);
 }
 
 json ValueNode::Serialize()
@@ -407,15 +420,15 @@ void ValueNode::ApplyData(json j)
 ResampleNode::ResampleNode(NodeGraph *graph) : Node(graph)
 {
     name = "Resample Node";
-    from = NodeDataValue::CURRENT_VALUE;
-    to = NodeDataValue::CURRENT_VALUE;
+    from = FrameDataIndex::CURRENT_VALUE;
+    to = FrameDataIndex::CURRENT_VALUE;
 }
 
 ResampleNode::~ResampleNode()
 {
 }
 
-void ResampleNode::Execute(map<uint32_t, float> *data)
+void ResampleNode::Execute(FrameData *data)
 {
     (*data)[to] = (*data)[from];
 }
@@ -447,7 +460,7 @@ SinNode::~SinNode()
 {
 }
 
-void SinNode::Execute(map<uint32_t, float> *data)
+void SinNode::Execute(FrameData *data)
 {
     CallInputs();
 
@@ -489,7 +502,7 @@ void SinNode::ApplyData(json j) {
 
 NoiseNode::NoiseNode(NodeGraph* graph) : Node(graph) { 
     name = "Noise Node"; 
-    target = NodeDataValue::CURRENT_VALUE; 
+    target = FrameDataIndex::CURRENT_VALUE; 
     noise = daisysp::WhiteNoise(); 
     noise.Init();
     noise.SetSeed(42);
@@ -499,7 +512,7 @@ NoiseNode::~NoiseNode()
 {
 }
 
-void NoiseNode::Execute(map<uint32_t, float> *data)
+void NoiseNode::Execute(FrameData *data)
 {
     CallInputs();
 
@@ -526,7 +539,7 @@ void NoiseNode::ApplyData(json j) {
 SawNode::SawNode(NodeGraph *graph) : Node(graph)
 {
     name = "Saw Node";
-    target = NodeDataValue::CURRENT_VALUE;
+    target = FrameDataIndex::CURRENT_VALUE;
     lastFreq = 0.0f;
     freqOffset = 0.0f;
 }
@@ -535,7 +548,7 @@ SawNode::~SawNode()
 {
 }
 
-void SawNode::Execute(map<uint32_t, float> *data)
+void SawNode::Execute(FrameData *data)
 {
     CallInputs();
 
@@ -579,7 +592,7 @@ void SawNode::ApplyData(json j)
 MultiplyNode::MultiplyNode(NodeGraph *graph) : Node(graph)
 {
     name = "Multiply Node";
-    target = NodeDataValue::CURRENT_VALUE;
+    target = FrameDataIndex::CURRENT_VALUE;
     value = 1.0;
 }
 
@@ -587,7 +600,7 @@ MultiplyNode::~MultiplyNode()
 {
 }
 
-void MultiplyNode::Execute(map<uint32_t, float> *data)
+void MultiplyNode::Execute(FrameData *data)
 {
 
     float res = value;
@@ -635,8 +648,8 @@ void MultiplyNode::ApplyData(json j)
 AddNode::AddNode(NodeGraph *graph) : Node(graph)
 {
     name = "Add Node";
-    target = NodeDataValue::CURRENT_VALUE;
-    input = NodeDataValue::CURRENT_VALUE;
+    target = FrameDataIndex::CURRENT_VALUE;
+    input = FrameDataIndex::CURRENT_VALUE;
     value = 0;
 }
 
@@ -644,7 +657,7 @@ AddNode::~AddNode()
 {
 }
 
-void AddNode::Execute(map<uint32_t, float> *data)
+void AddNode::Execute(FrameData *data)
 {
     float res = value;
 
@@ -692,7 +705,7 @@ DrumNode::DrumNode(NodeGraph *graph) : Node(graph)
 {
     name = "Drum Node";
     drum = daisysp::AnalogBassDrum();
-    target = NodeDataValue::CURRENT_VALUE;
+    target = FrameDataIndex::CURRENT_VALUE;
     time = 0.0f;
 
     drum.Init(44100.0f);
@@ -702,7 +715,7 @@ DrumNode::~DrumNode()
 {
 }
 
-void DrumNode::Execute(map<uint32_t, float> *data)
+void DrumNode::Execute(FrameData *data)
 {
     CallInputs();
 

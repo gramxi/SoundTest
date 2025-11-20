@@ -183,7 +183,7 @@ RotaryNode::~RotaryNode()
 }
 
 
-void RotaryNode::Execute(map<uint32_t, float> *data)
+void RotaryNode::Execute(FrameData* data)
 {
 
     if(decoder != nullptr) value = decoder->get_value();
@@ -246,7 +246,7 @@ RotaryNode::~RotaryNode()
 {
 } 
 
-void RotaryNode::Execute(map<uint32_t, float> *data)
+void RotaryNode::Execute(FrameData* data)
 {
 
     //bool shouldTrigger = false; 

@@ -19,7 +19,7 @@ using json = nlohmann::json;
 
 #define MAX_NODE_COUNT (1024)
 
-typedef enum NodeDataValue {
+typedef enum FrameDataIndex : uint32_t {
     CURRENT_VALUE = 0,
     TIME = 1,
     FREQUENCY = 2,
@@ -29,7 +29,7 @@ typedef enum NodeDataValue {
     MATH_3 = 6,
     PHASE = 7,
 
-} NodeDataValue;
+} FrameDataIndex;
 
 typedef uint32_t NodeID;
 
@@ -37,6 +37,7 @@ class NodeGraph;
 class Node;
 
 typedef shared_ptr<Node> NodePtr;
+typedef map<FrameDataIndex, float> FrameData;
 
 
 
@@ -52,7 +53,7 @@ public:
     int posX, posY;
     Node(NodeGraph* graph);
     ~Node();
-    virtual void Execute(map<uint32_t, float>* data) { printf("Execution"); };
+    virtual void Execute(FrameData* data) { printf("Execution"); };
     virtual json Serialize() { return json(); };
     virtual void ApplyData(json json) {};
     virtual void Dispose() {}
@@ -65,11 +66,11 @@ public:
     NodeGraph* GetGraph() { return graph; }
     void SaveDefaults(json& json);
     void LoadDefaults(json json);
-    static float TryGetValue(uint32_t value, map<uint32_t, float>* data);
+    static float TryGetValue(FrameDataIndex value, FrameData* data);
 
     //Gui functions
     virtual void Draw() {};
-    uint32_t DrawNodeDataNamesDropdown(const char* label, uint32_t currentDataValue);
+    FrameDataIndex DrawFrameDataIndexDropdown(const char* label, FrameDataIndex currentDataValue);
 };
 
 class NodeGraph
@@ -78,9 +79,9 @@ private:
     //All nodes stored in the tree
     vector<NodePtr> nodes;
     //Data modified by nodes - changes every frame
-    map<uint32_t, float> nodesData;
-    //Helper map for storing node names for each data value that can be changed (useful for dropdowns, etc.)
-    map<uint32_t, const char*> nodeDataNames;
+    FrameData frameData;
+    //Helper map for storing frame data names for each data index value that can be changed (useful for dropdowns, etc.)
+    map<FrameDataIndex, std::string> frameDataIndexNames;
     //Node id of the node to start evoking the tree
     NodeID rootNode;
     float currentTime = 0;
@@ -100,10 +101,10 @@ public:
     NodePtr atIndex(uint32_t index);
     NodeID GetNextFreeID();
     void RemoveNode(NodeID nodeId);
-    int NodeDataToNameIndex(uint32_t nodeDataValue);
-    vector<const char*> GetNodeNames();
-    uint32_t NodeNameToIndex(const char* nodeDataName);
-    float ReadData(uint32_t nodeDataValue);
+    vector<string> GetNodeNames();
+    vector<FrameDataIndex> GetFrameDataIndexValues();
+    //FrameData NodeNameToIndex(const char* nodeDataName);
+    float ReadData(FrameDataIndex index);
     void Dispose();
     
 };
@@ -115,12 +116,12 @@ class ValueNode : public Node
 {
 private:
     float value; 
-    uint32_t target;
+    FrameDataIndex target;
     
 public:
-    ValueNode(float value, uint32_t target, NodeGraph* graph) : value(value), target(target), Node(graph) { name = "Value Node"; };
+    ValueNode(float value, FrameDataIndex target, NodeGraph* graph) : value(value), target(target), Node(graph) { name = "Value Node"; };
     ~ValueNode();
-    void Execute(map<uint32_t, float>* data) override;
+    void Execute(FrameData* data) override;
     void Draw() override;
     json Serialize() override;
     void ApplyData(json json) override;
@@ -129,12 +130,12 @@ public:
 class ResampleNode : public Node
 {
 private:
-    uint32_t from;
-    uint32_t to;
+    FrameDataIndex from;
+    FrameDataIndex to;
 public:
     ResampleNode(NodeGraph* graph);
     ~ResampleNode();
-    void Execute(map<uint32_t, float>* data) override;
+    void Execute(FrameData* data) override;
     void Draw() override;
     json Serialize() override;
     void ApplyData(json j) override;
@@ -147,15 +148,15 @@ class SinNode : public Node
 {
 
 private:
-    uint32_t target;
+    FrameDataIndex target;
     float lastFreq;
     float freqOffset;
     
 public:
     //Takes TIME and FREQUENCY as input and writes into CURRENT_VALUE
-    SinNode(NodeGraph* graph) : Node(graph) { name = "Sin Node"; target = NodeDataValue::CURRENT_VALUE; lastFreq = 0.0f; freqOffset = 0.0f;};
+    SinNode(NodeGraph* graph) : Node(graph) { name = "Sin Node"; target = FrameDataIndex::CURRENT_VALUE; lastFreq = 0.0f; freqOffset = 0.0f;};
     ~SinNode();
-    void Execute(map<uint32_t, float>* data) override;
+    void Execute(FrameData* data) override;
     void Draw() override;
     json Serialize() override;
     void ApplyData(json json) override;
@@ -164,13 +165,13 @@ public:
 class SawNode : public Node
 {
 private:
-    uint32_t target;
+    FrameDataIndex target;
     float lastFreq;
     float freqOffset;
 public:
     SawNode(NodeGraph* graph);
     ~SawNode();
-    void Execute(map<uint32_t, float>* data) override;
+    void Execute(FrameData* data) override;
     void Draw() override;
     json Serialize() override;
     void ApplyData(json j) override;
@@ -179,13 +180,13 @@ public:
 class NoiseNode : public Node
 {
 private:
-    uint32_t target;
+    FrameDataIndex target;
     daisysp::WhiteNoise noise;
 
 public: 
     NoiseNode(NodeGraph* graph);
     ~NoiseNode();
-    void Execute(map<uint32_t, float>* data) override;
+    void Execute(FrameData* data) override;
     void Draw() override;
     json Serialize() override;
     void ApplyData(json j) override;
@@ -198,14 +199,14 @@ public:
 class MultiplyNode : public Node 
 {
 private:
-    uint32_t target;
-    uint32_t input;
+    FrameDataIndex target;
+    FrameDataIndex input;
     float value;
 
 public:
     MultiplyNode(NodeGraph* graph);
     ~MultiplyNode();
-    void Execute(map<uint32_t, float>* data) override;
+    void Execute(FrameData* data) override;
     void Draw() override;
     json Serialize() override;
     void ApplyData(json j) override;
@@ -215,14 +216,14 @@ public:
 class AddNode : public Node
 {
 private:
-    uint32_t target;
-    uint32_t input;
+    FrameDataIndex target;
+    FrameDataIndex input;
     float value;
     
 public:
     AddNode(NodeGraph* graph);
     ~AddNode();
-    void Execute(map<uint32_t, float>* data) override;
+    void Execute(FrameData* data) override;
     void Draw() override;
     json Serialize() override;
     void ApplyData(json j) override;
@@ -235,13 +236,13 @@ class DrumNode : public Node
 {
 private:
     daisysp::AnalogBassDrum drum;
-    uint32_t target;
+    FrameDataIndex target;
     float time;
     
 public:
     DrumNode(NodeGraph* graph);
     ~DrumNode();
-    void Execute(map<uint32_t, float>* data) override;
+    void Execute(FrameData* data) override;
     void Draw() override;
     json Serialize() override;
     void ApplyData(json j) override;

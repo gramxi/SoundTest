@@ -123,7 +123,7 @@ void AudioEngine::AddCreators() {
     }));
 
     creators.push_back(NodeCreator("Value Node", [] (NodeGraph* graph, json json) {
-        ValueNode node = ValueNode(1.0f, 0, graph);
+        ValueNode node = ValueNode(1.0f, (FrameDataIndex)0, graph);
 
         if(!json.contains("name")) {
             int id = graph->GetNextFreeID();

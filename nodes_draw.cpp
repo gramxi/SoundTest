@@ -3,21 +3,51 @@
 
 #include "gui.h"
 
-uint32_t Node::DrawNodeDataNamesDropdown(const char* label, uint32_t currentDataValue)
+FrameDataIndex Node::DrawFrameDataIndexDropdown(const char* label, FrameDataIndex currentDataValue)
 {
 
-    int currentNameIndex = GetGraph()->NodeDataToNameIndex(currentDataValue);
+    
+    vector<string> fdiNames = GetGraph()->GetNodeNames();
+    vector<FrameDataIndex> fdiKeys = GetGraph()->GetFrameDataIndexValues();
 
-    vector<const char*> nodeNames = GetGraph()->GetNodeNames();
+    int currentNameIndex;
 
-    if(ImGui::Combo(label, &currentNameIndex, nodeNames.data(), (int)nodeNames.size()))
+    auto iterator = find(fdiKeys.begin(), fdiKeys.end(), currentDataValue); //GetGraph()->NodeDataToNameIndex(currentDataValue);
+
+    if(iterator != fdiKeys.end()) currentNameIndex = iterator - fdiKeys.begin();
+
+    
+
+    if(ImGui::BeginCombo(label, fdiNames[currentNameIndex].c_str()))
     {
-        //printf("New item selected\n");
 
-        const char* selectedName = nodeNames[currentNameIndex];
+        for (int i = 0; i < fdiNames.size(); i++)
+        {
+            
+            ImGui::PushID((void*)(intptr_t)i);
+            const bool item_selected = (fdiKeys[i] == currentNameIndex);
+            const char* item_text = fdiNames[i].c_str();
 
-        return GetGraph()->NodeNameToIndex(selectedName);
+            if (ImGui::Selectable(item_text, item_selected))
+            {
+                //value_changed = true;
+                currentDataValue = fdiKeys[i];
+            }
+            if (item_selected)
+                ImGui::SetItemDefaultFocus();
+            ImGui::PopID();
+        }
+
+        ImGui::EndCombo();
     }
+
+    //if(ImGui::Combo(label, &currentNameIndex, fdiNames.data()->c_str(), (int)fdiNames.size()))
+    // {
+
+    //     //const char* selectedName = nodeNames[currentNameIndex];
+
+    //     return fdiKeys[currentNameIndex];
+    // }
 
     return currentDataValue;
 
@@ -27,7 +57,7 @@ uint32_t Node::DrawNodeDataNamesDropdown(const char* label, uint32_t currentData
 
 void NoiseNode::Draw()
 {
-    target = DrawNodeDataNamesDropdown("Target", target);
+    target = DrawFrameDataIndexDropdown("Target", target);
 }
 
 void ValueNode::Draw() {
@@ -38,18 +68,18 @@ void ValueNode::Draw() {
     ImGui::DragFloat("Value", &value);
 
 
-    target = DrawNodeDataNamesDropdown("Target", target);
+    target = DrawFrameDataIndexDropdown("Target", target);
     
 }
 
 void SinNode::Draw()
 {
-    target = DrawNodeDataNamesDropdown("Target", target);
+    target = DrawFrameDataIndexDropdown("Target", target);
 }
 
 void SawNode::Draw() {
     //ImGui::DragFloat("Value", &value);
-    target = DrawNodeDataNamesDropdown("Target", target);
+    target = DrawFrameDataIndexDropdown("Target", target);
 }
 
 
@@ -61,19 +91,19 @@ void MultiplyNode::Draw() {
     ImGui::DragFloat("Value", &value);
 
 
-    input = DrawNodeDataNamesDropdown("Input", input);
-    target = DrawNodeDataNamesDropdown("Target", target);
+    input = DrawFrameDataIndexDropdown("Input", input);
+    target = DrawFrameDataIndexDropdown("Target", target);
 }
 
 void AddNode::Draw() {
     ImGui::DragFloat("Value", &value);
-    target = DrawNodeDataNamesDropdown("Target", target);
-    input = DrawNodeDataNamesDropdown("Input", input);
+    target = DrawFrameDataIndexDropdown("Target", target);
+    input = DrawFrameDataIndexDropdown("Input", input);
 }
 
 void ResampleNode::Draw() {
-    from = DrawNodeDataNamesDropdown("From", from);
-    to = DrawNodeDataNamesDropdown("To", to);
+    from = DrawFrameDataIndexDropdown("From", from);
+    to = DrawFrameDataIndexDropdown("To", to);
 }
 
 void RotaryNode::Draw() {
@@ -97,14 +127,14 @@ void RotaryNode::Draw() {
 
 #endif
 
-    target = DrawNodeDataNamesDropdown("Target", target);
+    target = DrawFrameDataIndexDropdown("Target", target);
 
 
 }
 
 void DrumNode::Draw() {
     //ImGui::DragFloat("Value", &value);
-    target = DrawNodeDataNamesDropdown("Target", target);
+    target = DrawFrameDataIndexDropdown("Target", target);
 
     
 }

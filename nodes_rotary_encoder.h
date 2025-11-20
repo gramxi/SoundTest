@@ -59,7 +59,7 @@ class RotaryNode : public Node
 {
     
 private:
-    uint32_t target;
+    FrameDataIndex target;
     float value;
     //float currentValue;
     //float phase;
@@ -72,7 +72,7 @@ private:
 public:
     RotaryNode(NodeGraph* graph);
     ~RotaryNode();
-    void Execute(map<uint32_t, float>* data) override;
+    void Execute(FrameData* data) override;
     void Draw() override;
     json Serialize() override;
     void ApplyData(json j) override;
