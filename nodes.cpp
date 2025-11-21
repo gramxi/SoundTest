@@ -1,12 +1,11 @@
 #include "nodes.h"
 
-
 Node::Node(NodeGraph* graph)
 {
     this->graph = graph;
 }
 
-Node::~Node() { }
+//Node::~Node() { }
 
 void Node::AddInputPort(int uniquePortID)
 {

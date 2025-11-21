@@ -28,21 +28,21 @@ set(SOURCES
     main.cpp
     nodes.cpp
     synth.cpp
-    nodes_draw.cpp
     nodes_rotary_encoder.cpp
 )
-
-if(WITH_GUI)
+    
+    if(WITH_GUI)
     message(STATUS "Building with GUI support")
-
+    
     add_subdirectory(raylib)
     add_subdirectory(imgui)
     add_subdirectory(rlImGui)
     add_subdirectory(imgui-node-editor)
-
+    
     set(SOURCES ${SOURCES}
         imguiAddons.cpp
 
+        nodes_draw.cpp
         gui.cpp
     )
 

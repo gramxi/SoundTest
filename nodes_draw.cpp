@@ -1,7 +1,7 @@
 #ifdef WITH_GUI
 
-
 #include "gui.h"
+#include "nodes.h"
 
 FrameDataIndex Node::DrawFrameDataIndexDropdown(const char* label, FrameDataIndex currentDataValue)
 {
@@ -52,7 +52,6 @@ FrameDataIndex Node::DrawFrameDataIndexDropdown(const char* label, FrameDataInde
     return currentDataValue;
 
 }
-
 
 
 void NoiseNode::Draw()
@@ -110,18 +109,6 @@ void RotaryNode::Draw() {
 #ifdef RASPI
     ImGui::Text("App is compiled for Raspberry Pi. Please connect the GPIOs of your pi to the rotary encoder device and restart the application!");
 #else
-    //ImGui::InputFloat("Value", &value, 0.1f);
-    //ImGui::InputFloat("Current value", &value, 0.000000000000000001f);
-    //ImGui::Text("Current value: %f", currentValue);
-    //ImGui::Text("Value: %f", value);
-    //ImGui::Text("Phase: %f", phase);
-    //ImGui::Text("Offset: %f", offsetMult);
-    //ImGui::Checkbox("Use Phase", &usePhase);
-
-
-    //if(ImGui::Button("+")) ChangeValue(10.0f);
-    //if(ImGui::Button("-")) ChangeValue(-10.0f);
-
 
     ImGui::DragFloat("Value", &value, 0.5f);
 
@@ -139,23 +126,5 @@ void DrumNode::Draw() {
     
 }
 
-
-
-#else
-
-#include "nodes.h"
-#include "nodes_rotary_encoder.h"
-
-uint32_t Node::DrawNodeDataNamesDropdown(const char* label, uint32_t currentDataValue) { return 0; }
-
-void ValueNode::Draw() { }
-void NoiseNode::Draw() { }
-void SinNode::Draw() {}
-void MultiplyNode::Draw() {}
-void AddNode::Draw() {}
-void ResampleNode::Draw() {}
-void RotaryNode::Draw() {}
-void DrumNode::Draw() {}
-void SawNode::Draw() {}
 
 #endif

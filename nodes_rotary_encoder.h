@@ -73,11 +73,14 @@ public:
     RotaryNode(NodeGraph* graph);
     ~RotaryNode();
     void Execute(FrameData* data) override;
-    void Draw() override;
     json Serialize() override;
     void ApplyData(json j) override;
     void Dispose() override;
     void ChangeValue(float delta);
+    
+    GUI_ONLY(
+        void Draw() override;
+    )
 };
 
 

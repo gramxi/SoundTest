@@ -17,6 +17,12 @@ using json = nlohmann::json;
     #define PI 3.14159265358979323846f
 #endif
 
+#ifdef WITH_GUI
+    #define GUI_ONLY(...) __VA_ARGS__
+#else
+    #define GUI_ONLY(...)
+#endif
+
 #define MAX_NODE_COUNT (1024)
 
 typedef enum FrameDataIndex : uint32_t {
@@ -33,15 +39,12 @@ typedef enum FrameDataIndex : uint32_t {
 
 typedef uint32_t NodeID;
 
-class NodeGraph;
 class Node;
+class NodeGraph;
 
-typedef shared_ptr<Node> NodePtr;
 typedef map<FrameDataIndex, float> FrameData;
 
-
-
-class Node
+class Node 
 {
 private:
     vector<NodeID> inputNodeIDs;
@@ -52,11 +55,11 @@ public:
     NodeID id = 0;
     int posX, posY;
     Node(NodeGraph* graph);
-    ~Node();
+
     virtual void Execute(FrameData* data) { printf("Execution"); };
     virtual json Serialize() { return json(); };
     virtual void ApplyData(json json) {};
-    virtual void Dispose() {}
+    virtual void Dispose() {};
     void AddInputPort(int uniquePortID);
     void RemoveInputPort(int portID);
     void CallInputs();
@@ -67,11 +70,16 @@ public:
     void SaveDefaults(json& json);
     void LoadDefaults(json json);
     static float TryGetValue(FrameDataIndex value, FrameData* data);
-
-    //Gui functions
-    virtual void Draw() {};
-    FrameDataIndex DrawFrameDataIndexDropdown(const char* label, FrameDataIndex currentDataValue);
+    
+    
+    GUI_ONLY(
+        virtual void Draw() = 0;
+        //Gui functions
+        FrameDataIndex DrawFrameDataIndexDropdown(const char* label, FrameDataIndex currentDataValue);
+    )
 };
+
+typedef shared_ptr<Node> NodePtr;
 
 class NodeGraph
 {
@@ -122,9 +130,12 @@ public:
     ValueNode(float value, FrameDataIndex target, NodeGraph* graph) : value(value), target(target), Node(graph) { name = "Value Node"; };
     ~ValueNode();
     void Execute(FrameData* data) override;
-    void Draw() override;
     json Serialize() override;
     void ApplyData(json json) override;
+
+    GUI_ONLY(
+        void Draw() override;
+    )
 };
 
 class ResampleNode : public Node
@@ -136,9 +147,12 @@ public:
     ResampleNode(NodeGraph* graph);
     ~ResampleNode();
     void Execute(FrameData* data) override;
-    void Draw() override;
     json Serialize() override;
     void ApplyData(json j) override;
+    
+    GUI_ONLY(
+        void Draw() override;
+    )
 };
 
 
@@ -157,9 +171,12 @@ public:
     SinNode(NodeGraph* graph) : Node(graph) { name = "Sin Node"; target = FrameDataIndex::CURRENT_VALUE; lastFreq = 0.0f; freqOffset = 0.0f;};
     ~SinNode();
     void Execute(FrameData* data) override;
-    void Draw() override;
     json Serialize() override;
     void ApplyData(json json) override;
+    
+    GUI_ONLY(
+        void Draw() override;
+    )
 };
 
 class SawNode : public Node
@@ -172,9 +189,12 @@ public:
     SawNode(NodeGraph* graph);
     ~SawNode();
     void Execute(FrameData* data) override;
-    void Draw() override;
     json Serialize() override;
     void ApplyData(json j) override;
+    
+    GUI_ONLY(
+        void Draw() override;
+    )
 };
 
 class NoiseNode : public Node
@@ -187,10 +207,12 @@ public:
     NoiseNode(NodeGraph* graph);
     ~NoiseNode();
     void Execute(FrameData* data) override;
-    void Draw() override;
     json Serialize() override;
     void ApplyData(json j) override;
-
+    
+    GUI_ONLY(
+        void Draw() override;
+    )
 };
 
 
@@ -207,10 +229,12 @@ public:
     MultiplyNode(NodeGraph* graph);
     ~MultiplyNode();
     void Execute(FrameData* data) override;
-    void Draw() override;
     json Serialize() override;
     void ApplyData(json j) override;
-
+    
+    GUI_ONLY(
+        void Draw() override;
+    )
 };
 
 class AddNode : public Node
@@ -224,9 +248,12 @@ public:
     AddNode(NodeGraph* graph);
     ~AddNode();
     void Execute(FrameData* data) override;
-    void Draw() override;
     json Serialize() override;
     void ApplyData(json j) override;
+    
+    GUI_ONLY(
+        void Draw() override;
+    )
 };
 
 
@@ -243,10 +270,12 @@ public:
     DrumNode(NodeGraph* graph);
     ~DrumNode();
     void Execute(FrameData* data) override;
-    void Draw() override;
     json Serialize() override;
     void ApplyData(json j) override;
-
+    
+    GUI_ONLY(
+        void Draw() override;
+    )
     
 };
 
