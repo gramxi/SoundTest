@@ -467,7 +467,7 @@ void SinNode::Execute(FrameData *data)
     
     freq = fabs(freq);
 
-    float time = fmodf(TryGetValue(TIME, data), 44100.0f * freq);
+    float time = freq == 0.0f ? TryGetValue(TIME,data) : fmodf(TryGetValue(TIME, data), 44100.0f * freq);
 
     if(freq != lastFreq) { // frequency shift... 
         freqOffset += lastFreq * time * PI * 2.0f / 44100.0f - freq * time * PI * 2.0f / 44100.0f;
@@ -555,9 +555,9 @@ void SawNode::Execute(FrameData *data)
 
     freq = fabs(freq);
 
-    float time = fmodf(TryGetValue(TIME, data), 44100.0f * freq);
+    float time = freq == 0.0f ? TryGetValue(TIME,data) : fmodf(TryGetValue(TIME, data), 44100.0f * freq);
 
-    if(freq != lastFreq) {
+    if(freq != lastFreq) { // freq shift
         freqOffset += lastFreq * time - freq * time;
         lastFreq = freq;
     }
