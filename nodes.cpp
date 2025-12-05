@@ -147,7 +147,19 @@ void NodeGraph::AddNode(NodePtr node) {
 
 float NodeGraph::Execute()
 {
-    //if(rootNode == -1) return 0.0f;
+    
+    // reset active nodes:
+GUI_ONLY(
+    for (size_t i = 0; i < nodes.size(); i++)
+    {
+        nodes[i]->SetNotActive();
+
+    }
+    
+)
+
+
+
     
     frameData.clear();
 
@@ -165,6 +177,10 @@ float NodeGraph::Execute()
             
             //printf("Node Pointer: %d \n", n);
             
+GUI_ONLY(
+            n->SetActive();
+)
+
             n->Execute(&frameData);
             
             return frameData.at(CURRENT_VALUE);
@@ -180,6 +196,8 @@ void NodeGraph::ExecuteNodes(vector<NodeID> *nodes)
 {
     for (size_t i = 0; i < nodes->size(); i++)
     {
+
+
         
         NodePtr node = at(nodes->at(i));
 
@@ -187,6 +205,10 @@ void NodeGraph::ExecuteNodes(vector<NodeID> *nodes)
             //printf("Node at id %d doen't exist any more!\n", nodes->at(i));
             continue;
         }
+
+GUI_ONLY(
+        node->SetActive();       
+)
 
         node->Execute(&frameData);
 
@@ -205,6 +227,10 @@ void NodeGraph::ExecuteNode(NodeID nodeId) {
         //printf("Node at id %d doen't exist any more!\n", nodes->at(i));
         return;
     }
+
+GUI_ONLY(
+    node->SetActive();
+)
 
     node->Execute(&frameData);
 }

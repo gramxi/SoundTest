@@ -30,6 +30,9 @@ void NodeView::Init()
 
     context = ed::CreateEditor();
 
+    ImGui::GetStyle().Colors[ImGuiCol_PlotHistogram] = ImColor(230,180,255,255);
+    ImGui::GetStyle().FrameRounding = 12.0f;
+
 
 
 }
@@ -121,27 +124,92 @@ void NodeView::DrawNodeGraph() {
 
         ImGui::TextUnformatted(n->GetName());
 
+        ImGui::BeginGroup();
+
         // input port
 
         ImGui::BeginGroup();
 
         ed::BeginPin(inputPortStart + n->id + ID_OFFSET, ed::PinKind::Input);
-            ImGui::Text("o");
+        {
+
+            // Draw rounded knob
+            ImGui::PushItemWidth(10.0f);
+
+            
+            ImVec2 pos = ImGui::GetCursorScreenPos();
+            
+            float sz = 10.0f; 
+            
+            ImGui::GetWindowDrawList()->AddCircle(ImVec2(pos.x + sz*0.5f, pos.y + sz*0.5f), sz*0.5f, ImGui::GetColorU32(ImVec4(1.0f, 1.0f,1.0f,1.0f)), 100, 1); 
+            
+            ImGui::Dummy(ImVec2(10, 10));
+            
+            ImGui::PopItemWidth();            
+            
+        }
         ed::EndPin();
         
         ImGui::EndGroup();
 
-        ImGui::SameLine();
+    
+        float spacing = ed::GetNodeSize(n->id + ID_OFFSET).x;
+
+        //Exclue a little bit from left and right:
+        spacing -= 2.0f * 10.0f + 10.0f;
+        
+        if(n->IsActive()) {
+            float time = 0.0f;// floorf(fmodf((float)GetTime(), 4.0f));
+                
+            ImGui::SameLine();
+
+
+            ImGui::ProgressBar(-1.0f * (float)ImGui::GetTime(), ImVec2(50.0f, 10.0f));
+        
+            ImGui::SameLine();
+            //free(dots);
+
+        }
+        else{
+            ImGui::SameLine(spacing);
+        }
+        
+        
+        //ImGui::SameLine(ed::GetNodeSize(n->id + ID_OFFSET).x - 40);
+
+        
+        //ed::GetNodeSize(n->id + ID_OFFSET);
 
         //output port
 
         ImGui::BeginGroup();
 
         ed::BeginPin(outputPortStart + n->id + ID_OFFSET, ed::PinKind::Output);
-            ImGui::Text("o");
+        {
+
+            // Draw rounded knob
+
+            ImGui::PushItemWidth(10.0f);
+            
+            ImVec2 pos = ImGui::GetCursorScreenPos();
+
+            float sz = 10.0f; 
+
+            ImGui::GetWindowDrawList()->AddCircle(ImVec2(pos.x + sz*0.5f, pos.y + sz*0.5f), sz*0.5f, ImGui::GetColorU32(ImVec4(1.0f, 1.0f,1.0f,1.0f)), 100, 1); 
+
+            
+            ImGui::Dummy(ImVec2(10, 10));
+            
+            ImGui::PopItemWidth();
+        }
         ed::EndPin();
 
         ImGui::EndGroup();
+
+        ImGui::EndGroup();
+
+
+
 
 
         ed::EndNode();

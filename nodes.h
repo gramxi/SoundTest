@@ -49,6 +49,12 @@ class Node
 private:
     vector<NodeID> inputNodeIDs;
     NodeGraph* graph;
+
+    GUI_ONLY(
+        bool isActiveLastFrame = false;
+        bool isActive = false;
+    )
+
 protected:
     const char* name;
 public:
@@ -73,10 +79,16 @@ public:
     
     
     GUI_ONLY(
+        void SetActive() { this->isActive = true; this->isActiveLastFrame = true; }
+        void SetNotActive() { this->isActiveLastFrame = this->isActive; this->isActive = false; }
+        bool IsActive() { return this->isActive || this->isActiveLastFrame; }
+
         virtual void Draw() = 0;
         //Gui functions
         FrameDataIndex DrawFrameDataIndexDropdown(const char* label, FrameDataIndex currentDataValue);
     )
+
+
 };
 
 typedef shared_ptr<Node> NodePtr;
